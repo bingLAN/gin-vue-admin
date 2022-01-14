@@ -38,6 +38,15 @@ func NotEmpty() string {
 	return "notEmpty"
 }
 
+//@author: [bingLAN](https://github.com/bingLAN)
+//@function: Lt and NotEmpty
+//@description: Lt and NotEmpty
+//@return: string
+
+func NotEmptyAndLt(mark string) string {
+	return "notEmpty" + "&&" + "lt=" + mark
+}
+
 //@author: [zooqkl](https://github.com/zooqkl)
 //@function: RegexpMatch
 //@description: 正则校验 校验输入项是否满足正则表达式
@@ -65,6 +74,15 @@ func Lt(mark string) string {
 
 func Le(mark string) string {
 	return "le=" + mark
+}
+
+//@author: [bingLAN](https://github.com/bingLAN)
+//@function: Le and NotEmpty
+//@description: Lt and NotEmpty
+//@return: string
+
+func NotEmptyAndLe(mark string) string {
+	return "notEmpty" + "&&" + "le=" + mark
 }
 
 //@author: [piexlmax](https://github.com/piexlmax)
@@ -97,6 +115,15 @@ func Ge(mark string) string {
 	return "ge=" + mark
 }
 
+//@author: [bingLAN](https://github.com/bingLAN)
+//@function: Ge and Le
+//@description: Ge and Le
+//@return: string
+
+func GeAndLe(geMark string, leMark string) string {
+	return "ge=" + geMark + "&&" + "le=" + leMark
+}
+
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: Gt
 //@description: 大于入参(>) 如果为string array Slice则为长度比较 如果是 int uint float 则为数值比较
@@ -105,6 +132,15 @@ func Ge(mark string) string {
 
 func Gt(mark string) string {
 	return "gt=" + mark
+}
+
+//@author: [bingLAN](https://github.com/bingLAN)
+//@function: Gt and Lt
+//@description: Gt and Lt
+//@return: string
+
+func GtAndLt(gtMark string, ltMark string) string {
+	return "gt=" + gtMark + "&&" + "lt=" + ltMark
 }
 
 //
@@ -151,6 +187,49 @@ func Verify(st interface{}, roleMap Rules) (err error) {
 					if !compareVerify(val, v) {
 						return errors.New(tagVal.Name + "长度或值不在合法范围," + v)
 					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func ruleVerify(tag reflect.StructField, value reflect.Value, v string) (err error) {
+	if v == "notEmpty" {
+		//非空检查
+		if isBlank(value) {
+			return errors.New(tag.Name + "值不能为空")
+		}
+		return nil
+	} else {
+		//表达式检查
+		return expsVerify(tag, value, v)
+	}
+}
+
+//@author: [bingLAN](https://github.com/bingLAN)
+//@function: LogicVerify
+//@description: 逻辑型校验方法
+//@param: st interface{}, roleMap Rules(入参实例，规则map)
+//@return: err ParamErr
+func LogicVerify(st interface{}, roleMap Rules) (err error) {
+	typ := reflect.TypeOf(st)
+	val := reflect.ValueOf(st) // 获取reflect.Type类型
+
+	kd := val.Kind() // 获取到st对应的类别
+	if kd != reflect.Struct {
+		return errors.New("expect struct")
+	}
+	num := val.NumField()
+	// 遍历结构体的所有字段
+	for i := 0; i < num; i++ {
+		tagVal := typ.Field(i)
+		val := val.Field(i)
+		if len(roleMap[tagVal.Name]) > 0 {
+			for _, v := range roleMap[tagVal.Name] {
+				ec := ruleVerify(tagVal, val, v)
+				if ec != nil {
+					return ec
 				}
 			}
 		}
