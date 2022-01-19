@@ -173,7 +173,6 @@ func expsVerify(tag reflect.StructField, value reflect.Value, v string) (err err
 			if !compareVerify(value, exp) {
 				return errors.New(tag.Name + "长度或值不在合法范围," + v)
 			}
-			return nil
 		}
 	}
 
